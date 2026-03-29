@@ -20,7 +20,10 @@ function createImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area
+): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -140,28 +143,6 @@ export default function Page() {
     link.click();
   };
 
-  const shareWhatsApp = () => {
-    if (!finalImage) return;
-
-    const text = "Check out my poster!";
-    const url = window.location.href;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
-    window.open(whatsappUrl, "_blank");
-  };
-
-  const shareFacebook = () => {
-    if (!finalImage) return;
-
-    const url = window.location.href;
-    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(fbUrl, "_blank");
-  };
-
-  const shareInstagram = () => {
-    if (!finalImage) return;
-    alert("Instagram direct share is not supported from browser. Please download the image and upload it manually in Instagram.");
-  };
-
   const shareNative = async () => {
     if (!finalImage) return;
 
@@ -170,14 +151,16 @@ export default function Page() {
       const blob = await response.blob();
       const file = new File([blob], "poster.png", { type: "image/png" });
 
+      const customShareText = "We support from Qatar";
+
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
-          title: "My Poster",
-          text: "Check out my poster!",
+          title: "Poster",
+          text: customShareText,
           files: [file],
         });
       } else {
-        alert("Native sharing is not supported on this device/browser.");
+        alert("Share works only on supported mobile devices/browsers.");
       }
     } catch (error) {
       console.error(error);
@@ -276,40 +259,6 @@ export default function Page() {
                 Download
               </button>
             </div>
-
-            {finalImage && (
-              <>
-                <div className="grid grid-cols-3 gap-3">
-                  <button
-                    onClick={shareWhatsApp}
-                    className="bg-green-500 text-white py-2 rounded-xl font-semibold hover:opacity-90"
-                  >
-                    WhatsApp
-                  </button>
-
-                  <button
-                    onClick={shareFacebook}
-                    className="bg-blue-600 text-white py-2 rounded-xl font-semibold hover:opacity-90"
-                  >
-                    Facebook
-                  </button>
-
-                  <button
-                    onClick={shareInstagram}
-                    className="bg-pink-500 text-white py-2 rounded-xl font-semibold hover:opacity-90"
-                  >
-                    Instagram
-                  </button>
-                </div>
-
-                <button
-                  onClick={shareNative}
-                  className="w-full bg-slate-700 text-white py-3 rounded-2xl font-bold hover:bg-slate-800"
-                >
-                  Share (Mobile)
-                </button>
-              </>
-            )}
           </div>
         </div>
 
@@ -321,11 +270,20 @@ export default function Page() {
               Final poster preview will appear here
             </div>
           ) : (
-            <img
-              src={finalImage}
-              alt="Final poster"
-              className="w-full rounded-2xl shadow-lg"
-            />
+            <div className="space-y-4">
+              <img
+                src={finalImage}
+                alt="Final poster"
+                className="w-full rounded-2xl shadow-lg"
+              />
+
+              <button
+                onClick={shareNative}
+                className="w-full bg-slate-700 text-white py-3 rounded-2xl font-bold hover:bg-slate-800"
+              >
+                Share
+              </button>
+            </div>
           )}
         </div>
       </div>
