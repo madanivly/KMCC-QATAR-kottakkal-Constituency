@@ -56,7 +56,7 @@ export default function Page() {
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const posterSrc = useMemo(() => "/Poster.png", []);
+  const posterSrc = useMemo(() => "/poster.png", []);
 
   const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
     setCroppedAreaPixels(croppedPixels);
