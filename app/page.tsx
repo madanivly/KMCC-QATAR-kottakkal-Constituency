@@ -57,7 +57,6 @@ export default function PosterPage() {
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Ensure your template is named poster.png in the /public folder
   const posterSrc = useMemo(() => "/poster.png", []);
 
   const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
@@ -95,17 +94,19 @@ export default function PosterPage() {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context not available");
 
-      // Set Poster Resolution (matching image_0.png aspect)
+      // Standard Poster Resolution
       canvas.width = 1080;
       canvas.height = 1350;
 
-      // 1. Draw the base poster first (This puts the template in the background)
-      ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
+      // 1. Fill background white
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Draw User Photo over the black area on the LEFT
-      const photoWidth = 370;
-      const photoHeight = 450;
-      const photoCenterX = 272; // Left side center
+      // 2. DRAW USER PHOTO FIRST (Layered behind the frame)
+      // These coordinates center the photo inside the white frame area
+      const photoWidth = 360;  
+      const photoHeight = 440; 
+      const photoCenterX = 285; 
       const photoCenterY = 705; 
 
       const drawX = photoCenterX - photoWidth / 2;
@@ -113,16 +114,19 @@ export default function PosterPage() {
 
       ctx.drawImage(userImage, drawX, drawY, photoWidth, photoHeight);
 
-      // 3. Draw Name Text UNDER the photo on the LEFT
-      const textCenterX = 272; // Matched with photoCenterX to keep it on the left
-      const textCenterY = 985;
+      // 3. DRAW POSTER TEMPLATE ON TOP
+      // This will cover the edges of the photo for a clean look
+      ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
+
+      // 4. DRAW TEXT (Below the frame)
+      const textCenterX = 285; 
+      const textCenterY = 960; // Adjusted to be clearly below the frame
       const displayName = name.trim() || "YOUR NAME";
 
       ctx.fillStyle = "#000000"; 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      // Font: Arial Black, Size: 30pt (approx 40px)
-      ctx.font = "900 30pt 'Arial Black', Gadget, sans-serif";
+      ctx.font = "900 32pt 'Arial Black', Gadget, sans-serif";
       
       ctx.fillText(displayName, textCenterX, textCenterY);
 
@@ -144,45 +148,44 @@ export default function PosterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
+    <div className="min-h-screen bg-slate-50 py-10 px-4 font-sans">
       <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-2">
         
-        {/* Editor Side */}
-        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10">
-          <h1 className="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight">
-            Poster Generator
-          </h1>
+        {/* Editor Panel */}
+        <div className="bg-white rounded-[2rem] shadow-xl p-8 border border-slate-100">
+          <h1 className="text-2xl font-black text-slate-900 mb-6">POSTER EDITOR</h1>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Name</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">FullName</label>
               <input
                 type="text"
-                placeholder="Type name here..."
+                placeholder="Enter Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-blue-500 outline-none transition-all"
+                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 focus:border-blue-500 focus:bg-white outline-none transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Photo</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Upload Photo</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:bg-blue-600 file:text-white file:font-bold hover:file:bg-blue-700 cursor-pointer"
               />
             </div>
 
             {imageSrc && (
-              <div className="space-y-4">
-                <div className="relative w-full h-72 bg-black rounded-2xl overflow-hidden shadow-inner">
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Adjust Position</label>
+                <div className="relative w-full h-80 bg-slate-900 rounded-3xl overflow-hidden ring-4 ring-slate-50">
                   <Cropper
                     image={imageSrc}
                     crop={crop}
                     zoom={zoom}
-                    aspect={370 / 450}
+                    aspect={360 / 440}
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
                     onCropComplete={onCropComplete}
@@ -203,33 +206,34 @@ export default function PosterPage() {
             <button
               onClick={handleGenerate}
               disabled={!imageSrc || isGenerating}
-              className="w-full bg-blue-600 text-white rounded-2xl py-4 font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 transition-all active:scale-[0.98]"
+              className="w-full bg-blue-600 text-white rounded-2xl py-5 font-black text-lg shadow-xl shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 transition-all transform active:scale-95"
             >
-              {isGenerating ? "Generating..." : "Generate Final Poster"}
+              {isGenerating ? "GENERATING..." : "GENERATE POSTER"}
             </button>
           </div>
         </div>
 
-        {/* Preview Side */}
-        <div className="flex flex-col items-center">
-          <div className="w-full max-w-[400px] sticky top-10">
-            <h2 className="text-lg font-bold text-slate-700 mb-4">Final Result</h2>
+        {/* Preview Panel */}
+        <div className="flex flex-col">
+          <div className="sticky top-10">
+            <h2 className="text-lg font-bold text-slate-800 mb-4 px-2">Final Preview</h2>
             {!finalImage ? (
-              <div className="aspect-[1080/1350] w-full bg-white rounded-3xl border-4 border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-center p-10">
-                Preview will appear here after clicking generate
+              <div className="aspect-[1080/1350] w-full bg-white rounded-[2rem] border-4 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-10 text-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-2xl">🖼️</div>
+                <p className="font-medium">Your poster will appear here after generation.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6 animate-in zoom-in-95 duration-300">
                 <img
                   src={finalImage}
                   alt="Poster Preview"
-                  className="w-full rounded-3xl shadow-2xl border-4 border-white"
+                  className="w-full rounded-[2rem] shadow-2xl border-8 border-white"
                 />
                 <button
                   onClick={handleDownload}
-                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+                  className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-black shadow-lg transition-all"
                 >
-                  Download Image
+                  DOWNLOAD POSTER
                 </button>
               </div>
             )}
