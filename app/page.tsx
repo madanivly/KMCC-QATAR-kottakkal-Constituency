@@ -4,21 +4,20 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// EXACT MATCH FOR THE HOLE DIMENSIONS & POSITION
+// COORDINATES ADJUSTED: photoX shifted left to close 9px gap
 // ==========================================================
 const POSITION_SETTINGS = {
   photoWidth: 366.9583,    
   photoHeight: 448.4764,   
-  photoX: 307.8889,   
+  photoX: 298.8889,   // Decreased by 9px from 307.88
   photoY: 951.8147,   
 
-  textX: 307.8889,    
+  textX: 298.8889,    // Aligned with photo
   textY: 1226.8147,   
   fontSize: 34,       
-  fontColor: "#000000"
+  fontColor: "#ffffff" // Changed to WHITE
 };
 
-// --- NEW SHARE MESSAGE ---
 const SHARE_MESSAGE = `പ്രയാസങ്ങൾക്കിടയിലും പ്രവാസ ലോകത്ത് നിന്ന് നമുക്കും പിന്തുണ കൊടുക്കാം. സ്റ്റാറ്റസ് കാമ്പയിനിൽ പങ്കാളികളാവൂ. താഴെയുള്ള ലിങ്കിൽ ക്ലിക്ക് ചെയ്ത് നിങ്ങളുടെ ഫോട്ടോ പതിച്ച പോസ്റ്റർ തയ്യാറാക്കാം. https://kmcc-qatar-kottakkal-constituency.vercel.app/`;
 
 type Area = { x: number; y: number; width: number; height: number };
@@ -133,14 +132,13 @@ export default function Page() {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ 
           title: "Poster Campaign", 
-          text: SHARE_MESSAGE, // Updated Malayalam text
+          text: SHARE_MESSAGE,
           files: [file] 
         });
       } else {
-        alert("Share works only on supported mobile devices/browsers.");
+        alert("Share works only on supported mobile devices.");
       }
     } catch (error) {
-      console.error(error);
       alert("Could not open share dialog.");
     }
   };
@@ -149,27 +147,32 @@ export default function Page() {
     <div className="min-h-screen bg-[#eef2ee] py-10 px-4">
       <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-2">
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
-          <h1 className="text-3xl font-bold text-center text-[#1f2d24]">Generate Poster</h1>
+          <h1 className="text-3xl font-bold text-center text-black">Generate Poster</h1>
           
           <div className="mt-6">
-            <label className="block text-sm font-semibold mb-2">Type Name</label>
+            <label className="block text-sm font-bold mb-2 text-black">Type Name</label>
             <input
               type="text"
               placeholder="Enter full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border-2 border-black rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500 text-black placeholder:text-gray-500 font-bold"
             />
           </div>
 
           <div className="mt-5">
-            <label className="block text-sm font-semibold mb-2">Upload Photo</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full border rounded-2xl p-3" />
+            <label className="block text-sm font-bold mb-2 text-black">Upload Photo</label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleFileChange} 
+              className="block w-full border-2 border-black rounded-2xl p-3 text-black font-bold file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-black file:text-white" 
+            />
           </div>
 
           {imageSrc && (
             <div className="mt-6">
-              <label className="block text-sm font-semibold mb-2">Crop Photo</label>
+              <label className="block text-sm font-bold mb-2 text-black">Crop Photo</label>
               <div className="relative w-full h-[420px] bg-black rounded-2xl overflow-hidden">
                 <Cropper
                   image={imageSrc}
@@ -182,8 +185,8 @@ export default function Page() {
                 />
               </div>
               <div className="mt-4">
-                <label className="block text-sm font-semibold mb-2">Zoom</label>
-                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
+                <label className="block text-sm font-bold mb-2 text-black">Zoom</label>
+                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full accent-black" />
               </div>
             </div>
           )}
@@ -193,11 +196,11 @@ export default function Page() {
               <button
                 onClick={handleGenerate}
                 disabled={!imageSrc || isGenerating}
-                className="flex-1 bg-green-700 text-white rounded-2xl py-3 font-bold hover:bg-green-800 disabled:opacity-50"
+                className="flex-1 bg-green-700 text-white rounded-2xl py-3 font-bold hover:bg-green-800 disabled:opacity-50 shadow-md"
               >
                 {isGenerating ? "Generating..." : "Generate Poster"}
               </button>
-              <button onClick={handleDownload} disabled={!finalImage} className="flex-1 bg-gray-900 text-white rounded-2xl py-3 font-bold disabled:opacity-50">
+              <button onClick={handleDownload} disabled={!finalImage} className="flex-1 bg-black text-white rounded-2xl py-3 font-bold disabled:opacity-50">
                 Download
               </button>
             </div>
@@ -205,15 +208,15 @@ export default function Page() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-center mb-4">Preview</h2>
+          <h2 className="text-2xl font-bold text-center mb-4 text-black">Preview</h2>
           {!finalImage ? (
-            <div className="aspect-[4/5] rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-slate-400 text-center p-8">
+            <div className="aspect-[4/5] rounded-2xl border-4 border-dashed border-black flex items-center justify-center text-black font-bold text-center p-8">
               Final poster preview will appear here
             </div>
           ) : (
             <div className="space-y-4">
-              <img src={finalImage} alt="Final poster" className="w-full rounded-2xl shadow-lg border-4 border-white" />
-              <button onClick={shareNative} className="w-full bg-slate-700 text-white py-3 rounded-2xl font-bold hover:bg-slate-800">
+              <img src={finalImage} alt="Final poster" className="w-full rounded-2xl shadow-lg border-2 border-black" />
+              <button onClick={shareNative} className="w-full bg-slate-800 text-white py-3 rounded-2xl font-bold hover:bg-black">
                 Share
               </button>
             </div>
