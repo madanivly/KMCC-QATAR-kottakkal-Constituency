@@ -9,11 +9,10 @@ import Cropper from "react-easy-crop";
 const POSITION_SETTINGS = {
   photoWidth: 360,    
   photoHeight: 480,   
-  photoX: 40.844 mm,        // <--- H Value (Horizontal)
-  photoY: 260.703,        // <--- V Value (Vertical)
-
-  textX: 105.729mm,         // <--- H Value for Name
-  textY: 436.83 mm,        // <--- V Value for Name
+  photoX: 883.2815,        // <--- H Value (Horizontal)
+  photoY: 709.4579
+  textX: 883.2452,         // <--- H Value for Name
+  textY: 989.9445,        // <--- V Value for Name
   fontSize: 30,       
   fontColor: "#000000"
 };
