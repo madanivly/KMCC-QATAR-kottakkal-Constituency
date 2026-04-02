@@ -4,16 +4,16 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// NEW ADJUSTED COORDINATES (+19px Right, +174px Down)
+// MANUAL POSITION SETTINGS (Adjust these numbers to move)
 // ==========================================================
 const POSITION_SETTINGS = {
   photoWidth: 350,    
   photoHeight: 450,   
-  photoX: 310,        // New H Value
-  photoY: 1063,       // New V Value
+  photoX: 291,        // H Position
+  photoY: 889,        // V Position
 
-  textX: 310,         // Aligned with photo center
-  textY: 1300,        // Adjusted down to match the new photo position
+  textX: 291,         
+  textY: 1164,        
   fontSize: 34,       
   fontColor: "#000000"
 };
@@ -42,7 +42,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
   return canvas.toDataURL("image/png");
 }
 
-export default function PosterPage() {
+export default function Page() {
   const [name, setName] = useState("");
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -71,11 +71,13 @@ export default function PosterPage() {
   };
 
   const handleGenerate = async () => {
-    if (!imageSrc || !croppedAreaPixels) return;
+    if (!imageSrc || !croppedAreaPixels) {
+      alert("Please upload and crop a photo first.");
+      return;
+    }
 
     try {
       setIsGenerating(true);
-
       const croppedPhotoData = await getCroppedImg(imageSrc, croppedAreaPixels);
       const userImage = await createImage(croppedPhotoData);
       const posterOverlay = await createImage(posterSrc);
@@ -87,19 +89,18 @@ export default function PosterPage() {
       canvas.width = 1080;
       canvas.height = 1350;
 
-      // 1. Background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. DRAW PHOTO (BEHIND THE FRAME)
+      // Photo Layer (Behind)
       const drawX = POSITION_SETTINGS.photoX - POSITION_SETTINGS.photoWidth / 2;
       const drawY = POSITION_SETTINGS.photoY - POSITION_SETTINGS.photoHeight / 2;
       ctx.drawImage(userImage, drawX, drawY, POSITION_SETTINGS.photoWidth, POSITION_SETTINGS.photoHeight);
 
-      // 3. DRAW POSTER TEMPLATE (ON TOP)
+      // Poster Layer (On Top)
       ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
 
-      // 4. DRAW NAME
+      // Name Layer
       ctx.fillStyle = POSITION_SETTINGS.fontColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -109,72 +110,110 @@ export default function PosterPage() {
       setFinalImage(canvas.toDataURL("image/png"));
     } catch (error) {
       console.error(error);
-      alert("Generation failed.");
+      alert("Could not generate poster.");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const handleDownload = () => {
+    if (!finalImage) return;
+    const link = document.createElement("a");
+    link.href = finalImage;
+    link.download = "poster.png";
+    link.click();
+  };
+
+  const shareNative = async () => {
+    if (!finalImage) return;
+    try {
+      const response = await fetch(finalImage);
+      const blob = await response.blob();
+      const file = new File([blob], "poster.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "Poster", text: "We support from Qatar", files: [file] });
+      } else {
+        alert("Share works only on supported mobile devices/browsers.");
+      }
+    } catch (error) {
+      alert("Could not open share dialog.");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-2">
-        <div className="bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
-          <h1 className="text-2xl font-black mb-6">POSTER EDITOR</h1>
-          <div className="space-y-6">
+    <div className="min-h-screen bg-[#eef2ee] py-10 px-4">
+      <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-2">
+        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          <h1 className="text-3xl font-bold text-center text-[#1f2d24]">Generate Poster</h1>
+          <p className="text-center text-gray-600 mt-2">Type name, upload photo, crop it, then generate.</p>
+
+          <div className="mt-6">
+            <label className="block text-sm font-semibold mb-2">Type Name</label>
             <input
               type="text"
-              placeholder="Name"
+              placeholder="Enter full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all"
+              className="w-full border rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
             />
-            <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-sm text-slate-500" />
-            
-            {imageSrc && (
-              <div className="space-y-4 animate-in fade-in duration-500">
-                <div className="relative w-full h-80 bg-black rounded-3xl overflow-hidden shadow-2xl">
-                  <Cropper
-                    image={imageSrc}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={POSITION_SETTINGS.photoWidth / POSITION_SETTINGS.photoHeight}
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={onCropComplete}
-                  />
-                </div>
-                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg accent-blue-600" />
-              </div>
-            )}
+          </div>
 
-            <button
-              onClick={handleGenerate}
-              className="w-full bg-blue-600 text-white rounded-xl py-4 font-bold hover:bg-blue-700 active:scale-95 transition-all"
-            >
-              {isGenerating ? "GENERATING..." : "GENERATE POSTER"}
-            </button>
+          <div className="mt-5">
+            <label className="block text-sm font-semibold mb-2">Upload Photo</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full border rounded-2xl p-3" />
+          </div>
+
+          {imageSrc && (
+            <div className="mt-6">
+              <label className="block text-sm font-semibold mb-2">Crop Photo</label>
+              <div className="relative w-full h-[420px] bg-black rounded-2xl overflow-hidden">
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={POSITION_SETTINGS.photoWidth / POSITION_SETTINGS.photoHeight}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
+              <div className="mt-4">
+                <label className="block text-sm font-semibold mb-2">Zoom</label>
+                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-col gap-3">
+            <div className="flex gap-3">
+              <button
+                onClick={handleGenerate}
+                disabled={!imageSrc || isGenerating}
+                className="flex-1 bg-green-700 text-white rounded-2xl py-3 font-bold hover:bg-green-800 disabled:opacity-50"
+              >
+                {isGenerating ? "Generating..." : "Generate Poster"}
+              </button>
+              <button onClick={handleDownload} disabled={!finalImage} className="flex-1 bg-gray-900 text-white rounded-2xl py-3 font-bold disabled:opacity-50">
+                Download
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
-          <div className="sticky top-10 w-full max-w-[450px]">
-            <h2 className="text-lg font-bold mb-4 px-2">Preview</h2>
-            {!finalImage ? (
-              <div className="aspect-[4/5] bg-white rounded-3xl border-4 border-dashed border-slate-200 flex items-center justify-center text-slate-400">
-                Generate to see result
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <img src={finalImage} alt="Final Poster" className="w-full rounded-3xl shadow-2xl border-4 border-white" />
-                <button 
-                  onClick={() => { const link = document.createElement("a"); link.href = finalImage; link.download = "poster.png"; link.click(); }} 
-                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all"
-                >
-                  DOWNLOAD
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          <h2 className="text-2xl font-bold text-center mb-4">Preview</h2>
+          {!finalImage ? (
+            <div className="aspect-[4/5] rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 text-center p-8">
+              Final poster preview will appear here
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <img src={finalImage} alt="Final poster" className="w-full rounded-2xl shadow-lg border-4 border-white" />
+              <button onClick={shareNative} className="w-full bg-slate-700 text-white py-3 rounded-2xl font-bold hover:bg-slate-800">
+                Share
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
