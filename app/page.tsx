@@ -4,14 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// EXACT MATCH FOR THE HOLE DIMENSIONS
+// EXACT MATCH FOR THE HOLE DIMENSIONS & POSITION
 // ==========================================================
 const POSITION_SETTINGS = {
-  // These must match your hole size exactly to prevent white gaps
   photoWidth: 366.9583,    
   photoHeight: 448.4764,   
-  
-  // Adjusted positions to center within the frame perfectly
   photoX: 307.8889,   
   photoY: 951.8147,   
 
@@ -20,7 +17,9 @@ const POSITION_SETTINGS = {
   fontSize: 34,       
   fontColor: "#000000"
 };
-// ==========================================================
+
+// --- NEW SHARE MESSAGE ---
+const SHARE_MESSAGE = `പ്രയാസങ്ങൾക്കിടയിലും പ്രവാസ ലോകത്ത് നിന്ന് നമുക്കും പിന്തുണ കൊടുക്കാം. സ്റ്റാറ്റസ് കാമ്പയിനിൽ പങ്കാളികളാവൂ. താഴെയുള്ള ലിങ്കിൽ ക്ലിക്ക് ചെയ്ത് നിങ്ങളുടെ ഫോട്ടോ പതിച്ച പോസ്റ്റർ തയ്യാറാക്കാം. https://kmcc-qatar-kottakkal-constituency.vercel.app/`;
 
 type Area = { x: number; y: number; width: number; height: number };
 
@@ -92,19 +91,15 @@ export default function Page() {
       canvas.width = 1080;
       canvas.height = 1350;
 
-      // 1. Draw solid background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Photo Layer (Behind) - Using exact hole dimensions
       const drawX = POSITION_SETTINGS.photoX - POSITION_SETTINGS.photoWidth / 2;
       const drawY = POSITION_SETTINGS.photoY - POSITION_SETTINGS.photoHeight / 2;
       ctx.drawImage(userImage, drawX, drawY, POSITION_SETTINGS.photoWidth, POSITION_SETTINGS.photoHeight);
 
-      // 3. Poster Layer (On Top) - The "Frame"
       ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
 
-      // 4. Name Layer
       ctx.fillStyle = POSITION_SETTINGS.fontColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -134,12 +129,18 @@ export default function Page() {
       const response = await fetch(finalImage);
       const blob = await response.blob();
       const file = new File([blob], "poster.png", { type: "image/png" });
+      
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: "Poster", text: "We support from Qatar", files: [file] });
+        await navigator.share({ 
+          title: "Poster Campaign", 
+          text: SHARE_MESSAGE, // Updated Malayalam text
+          files: [file] 
+        });
       } else {
-        alert("Share works only on supported devices.");
+        alert("Share works only on supported mobile devices/browsers.");
       }
     } catch (error) {
+      console.error(error);
       alert("Could not open share dialog.");
     }
   };
@@ -174,7 +175,6 @@ export default function Page() {
                   image={imageSrc}
                   crop={crop}
                   zoom={zoom}
-                  // Force the cropper to use the exact aspect ratio of the hole
                   aspect={POSITION_SETTINGS.photoWidth / POSITION_SETTINGS.photoHeight}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
