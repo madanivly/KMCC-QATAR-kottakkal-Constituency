@@ -4,16 +4,16 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// MANUAL POSITION SETTINGS (Adjust these numbers to move)
+// MANUAL POSITION SETTINGS (Adjusted +16.8889 Right, +62.8147 Down)
 // ==========================================================
 const POSITION_SETTINGS = {
   photoWidth: 350,    
   photoHeight: 450,   
-  photoX: 291,        // H Position
-  photoY: 889,        // V Position
+  photoX: 307.8889,   // New H Position
+  photoY: 951.8147,   // New V Position
 
-  textX: 291,         
-  textY: 1164,        
+  textX: 307.8889,    // Aligned with photo center
+  textY: 1226.8147,   // Adjusted down to maintain spacing below photo
   fontSize: 34,       
   fontColor: "#000000"
 };
@@ -203,7 +203,7 @@ export default function Page() {
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
           <h2 className="text-2xl font-bold text-center mb-4">Preview</h2>
           {!finalImage ? (
-            <div className="aspect-[4/5] rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 text-center p-8">
+            <div className="aspect-[4/5] rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-slate-400 text-center p-8">
               Final poster preview will appear here
             </div>
           ) : (
