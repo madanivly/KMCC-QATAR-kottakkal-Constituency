@@ -4,16 +4,19 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// MANUAL POSITION SETTINGS (Adjusted +16.8889 Right, +62.8147 Down)
+// EXACT MATCH FOR THE HOLE DIMENSIONS
 // ==========================================================
 const POSITION_SETTINGS = {
-  photoWidth: 350,    
-  photoHeight: 450,   
-  photoX: 307.8889,   // New H Position
-  photoY: 951.8147,   // New V Position
+  // These must match your hole size exactly to prevent white gaps
+  photoWidth: 366.9583,    
+  photoHeight: 448.4764,   
+  
+  // Adjusted positions to center within the frame perfectly
+  photoX: 307.8889,   
+  photoY: 951.8147,   
 
-  textX: 307.8889,    // Aligned with photo center
-  textY: 1226.8147,   // Adjusted down to maintain spacing below photo
+  textX: 307.8889,    
+  textY: 1226.8147,   
   fontSize: 34,       
   fontColor: "#000000"
 };
@@ -89,18 +92,19 @@ export default function Page() {
       canvas.width = 1080;
       canvas.height = 1350;
 
+      // 1. Draw solid background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Photo Layer (Behind)
+      // 2. Photo Layer (Behind) - Using exact hole dimensions
       const drawX = POSITION_SETTINGS.photoX - POSITION_SETTINGS.photoWidth / 2;
       const drawY = POSITION_SETTINGS.photoY - POSITION_SETTINGS.photoHeight / 2;
       ctx.drawImage(userImage, drawX, drawY, POSITION_SETTINGS.photoWidth, POSITION_SETTINGS.photoHeight);
 
-      // Poster Layer (On Top)
+      // 3. Poster Layer (On Top) - The "Frame"
       ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
 
-      // Name Layer
+      // 4. Name Layer
       ctx.fillStyle = POSITION_SETTINGS.fontColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -133,7 +137,7 @@ export default function Page() {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ title: "Poster", text: "We support from Qatar", files: [file] });
       } else {
-        alert("Share works only on supported mobile devices/browsers.");
+        alert("Share works only on supported devices.");
       }
     } catch (error) {
       alert("Could not open share dialog.");
@@ -145,8 +149,7 @@ export default function Page() {
       <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-2">
         <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
           <h1 className="text-3xl font-bold text-center text-[#1f2d24]">Generate Poster</h1>
-          <p className="text-center text-gray-600 mt-2">Type name, upload photo, crop it, then generate.</p>
-
+          
           <div className="mt-6">
             <label className="block text-sm font-semibold mb-2">Type Name</label>
             <input
@@ -171,6 +174,7 @@ export default function Page() {
                   image={imageSrc}
                   crop={crop}
                   zoom={zoom}
+                  // Force the cropper to use the exact aspect ratio of the hole
                   aspect={POSITION_SETTINGS.photoWidth / POSITION_SETTINGS.photoHeight}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
