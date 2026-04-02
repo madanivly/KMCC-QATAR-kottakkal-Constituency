@@ -4,19 +4,20 @@ import { useCallback, useMemo, useState } from "react";
 import Cropper from "react-easy-crop";
 
 // ==========================================================
-// UPDATED COORDINATES
+// NEW ADJUSTED COORDINATES (+19px Right, +174px Down)
 // ==========================================================
 const POSITION_SETTINGS = {
   photoWidth: 350,    
   photoHeight: 450,   
-  photoX: 291,        // H Value
-  photoY: 889,        // V Value
+  photoX: 310,        // New H Value
+  photoY: 1063,       // New V Value
 
-  textX: 291,         
-  textY: 1164,        
+  textX: 310,         // Aligned with photo center
+  textY: 1300,        // Adjusted down to match the new photo position
   fontSize: 34,       
   fontColor: "#000000"
 };
+// ==========================================================
 
 type Area = { x: number; y: number; width: number; height: number };
 
@@ -90,12 +91,12 @@ export default function PosterPage() {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. DRAW PHOTO (BEHIND)
+      // 2. DRAW PHOTO (BEHIND THE FRAME)
       const drawX = POSITION_SETTINGS.photoX - POSITION_SETTINGS.photoWidth / 2;
       const drawY = POSITION_SETTINGS.photoY - POSITION_SETTINGS.photoHeight / 2;
       ctx.drawImage(userImage, drawX, drawY, POSITION_SETTINGS.photoWidth, POSITION_SETTINGS.photoHeight);
 
-      // 3. DRAW POSTER (ON TOP)
+      // 3. DRAW POSTER TEMPLATE (ON TOP)
       ctx.drawImage(posterOverlay, 0, 0, canvas.width, canvas.height);
 
       // 4. DRAW NAME
@@ -125,13 +126,13 @@ export default function PosterPage() {
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all"
             />
-            <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-sm" />
+            <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-sm text-slate-500" />
             
             {imageSrc && (
-              <div className="space-y-4">
-                <div className="relative w-full h-80 bg-black rounded-3xl overflow-hidden">
+              <div className="space-y-4 animate-in fade-in duration-500">
+                <div className="relative w-full h-80 bg-black rounded-3xl overflow-hidden shadow-2xl">
                   <Cropper
                     image={imageSrc}
                     crop={crop}
@@ -142,13 +143,13 @@ export default function PosterPage() {
                     onCropComplete={onCropComplete}
                   />
                 </div>
-                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full accent-blue-600" />
+                <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg accent-blue-600" />
               </div>
             )}
 
             <button
               onClick={handleGenerate}
-              className="w-full bg-blue-600 text-white rounded-xl py-4 font-bold"
+              className="w-full bg-blue-600 text-white rounded-xl py-4 font-bold hover:bg-blue-700 active:scale-95 transition-all"
             >
               {isGenerating ? "GENERATING..." : "GENERATE POSTER"}
             </button>
@@ -157,13 +158,17 @@ export default function PosterPage() {
 
         <div className="flex flex-col items-center">
           <div className="sticky top-10 w-full max-w-[450px]">
-            <h2 className="text-lg font-bold mb-4">Preview</h2>
-            {finalImage && (
+            <h2 className="text-lg font-bold mb-4 px-2">Preview</h2>
+            {!finalImage ? (
+              <div className="aspect-[4/5] bg-white rounded-3xl border-4 border-dashed border-slate-200 flex items-center justify-center text-slate-400">
+                Generate to see result
+              </div>
+            ) : (
               <div className="space-y-4">
-                <img src={finalImage} alt="Result" className="w-full rounded-3xl shadow-2xl border-4 border-white" />
+                <img src={finalImage} alt="Final Poster" className="w-full rounded-3xl shadow-2xl border-4 border-white" />
                 <button 
                   onClick={() => { const link = document.createElement("a"); link.href = finalImage; link.download = "poster.png"; link.click(); }} 
-                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold"
+                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all"
                 >
                   DOWNLOAD
                 </button>
